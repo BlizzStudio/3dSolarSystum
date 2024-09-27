@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Handlee&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Solar System</title>
+  <style>
+    body { margin: 0;
+    font-family: 'Handlee', cursive;
+     overflow: hidden; 
+     user-select: none;
+   }
+    canvas { display: block; }
+    #info { 
+      position: absolute; 
+      top: 10px; 
+      left: 10px; 
+      color: white; 
+      font-family: Arial, sans-serif; 
+      z-index: 1; 
+    }
+    .label {
+      color: white;
+      background-color: rgba(0, 0, 0, 0.5);
+      border-radius: 5px;
+      padding: 2px 5px;
+      font-size: 12px;
+      pointer-events: none;
+    }
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+    }
+    .controls button {
+      margin: 5px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color:orange;
+      cursor: pointer;
+      font-family:'Handlee', cursive;
+    }
+   h1 {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-family: 'Handlee', cursive;
+      z-index: 1;
+      text-align: center;
+    }
+    #h1isgood {
+     
+      
+    
+    bottom:2000px;
+      color: white;
+      font-family: Arial, sans-serif;
+    
+    
+    }
+    .zoom-slider {
+      width: 200px;
+      color:black;
+      background-color: orange;
+       
+    }
+  
+input[type="checkbox"] {
+    display: none;
+}
+
+.hamburger {
+    width: 40px;
+    height: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 20;
+    transition: transform 0.3s ease;
+}
+
+.bar {
+    width: 80%;
+    height: 6px;
+    background-color: white;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.menu {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 250px;
+    height: 100vh;
+    background-color: #223;
+    color: white;
+    padding: 50px 20px 20px 20px;
+    transition: left 0.4s ease;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+}
+
+.menu p {
+    margin: 20px 0;
+    color: #fff;
+    font-size: 1.2rem;
+    font-family: fantasy;
+}
+
+#menu-toggle:checked + .hamburger .bar:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 12px);
+}
+
+#menu-toggle:checked + .hamburger .bar:nth-child(2) {
+    transform: rotate(-45deg) translateY(-4.5px) translateX(-5px);
+    opacity: 0; 
+}
+
+#menu-toggle:checked + .hamburger .bar:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -12px);
+}
+
+#menu-toggle:checked ~ .menu {
+    left: 0;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    transition: opacity 0.5s ease;
+    z-index: 20;
+    text-align: center;
+}
+
+.overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+* {
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+    #exit-planets-info {
+      margin: 5px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color:orange;
+      cursor: pointer;
+    }
+    #exit-creator {
+      margin: 5px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color:orange;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+    <input type="checkbox" id="menu-toggle" />
+    <label class="hamburger" for="menu-toggle">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+    </label>
+    <div class="menu">
+    <p id="planets-info-btn">Planet Info</p>
+    <p id="creator-btn">Creator</p>
+</div>
+
+<div id="planets-info" class="overlay">
+    <p>Solar System</p>
+    
+    <button id="exit-planets-info" class="exit">Exit</button>
+</div>
+
+<div id="creator-section" class="overlay">
+    <h2>Astro Eagle 🦅👑</h2>
+    
+    <button id="exit-creator" class="exit">Exit</button>
+</div>
+  <h1>3d Solar System</h1>
+  <div id="info"></div>
+  <div class="controls">
+    <button id="leftBtn">Left</button>
+    <button id="rightBtn">Right</button>
+    <input type="range" id="zoomSlider" class="zoom-slider" min="20" max="100" value="50">
+    
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.rawgit.com/mrdoob/three.js/r128/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.rawgit.com/mrdoob/three.js/r128/examples/js/renderers/CSS2DRenderer.js"></script>
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+    const menuToggle = document.getElementById("menu-toggle");
+    
+    function closeActiveSections() {
+        const activeSections = document.querySelectorAll('.overlay.active');
+        activeSections.forEach(section => {
+            section.classList.remove('active');
+        });
+    }
+
+    document.getElementById("planets-info-btn").addEventListener("click", function() {
+        closeActiveSections();
+        menuToggle.checked = false;
+        document.getElementById("planets-info").classList.add("active");
+    });
+
+    document.getElementById("creator-btn").addEventListener("click", function() {
+        closeActiveSections();
+        menuToggle.checked = false;
+        document.getElementById("creator-section").classList.add("active");
+    });
+
+    document.getElementById("exit-planets-info").addEventListener("click", function() {
+        document.getElementById("planets-info").classList.remove("active");
+    });
+
+    document.getElementById("exit-creator").addEventListener("click", function() {
+        document.getElementById("creator-section").classList.remove("active");
+    });
+});
+  </script>
+  <script>
+  
+    // Scene, Camera, Renderer setup
+    // Scene, Camera, Renderer setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    
+    // CSS2DRenderer for planet labels
+    const labelRenderer = new THREE.CSS2DRenderer();
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0';
+    document.body.appendChild(labelRenderer.domElement);
+
+    // OrbitControls for rotating/zooming view
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; 
+    controls.dampingFactor = 0.25;
+    controls.screenSpacePanning = false;
+    controls.maxPolarAngle = Math.PI / 2;
+
+    // Lighting
+    const light = new THREE.PointLight(0xffffffff, 2, 1000);
+    light.position.set(10, 10, 100); 
+    scene.add(light);
+
+   
+    
+
+    // Sun
+    const sunGeometry = new THREE.SphereGeometry(3, 32, 32);
+    const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffdd33 });
+    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+    scene.add(sun);
+
+    // Create a basic colored planet with label
+    const createPlanet = (size, color, distance, hasRing, name) => {
+      const geometry = new THREE.SphereGeometry(size, 32, 32);
+      const material = new THREE.MeshStandardMaterial({ color: color });
+      const planet = new THREE.Mesh(geometry, material);
+      planet.position.x = distance;
+// Create a background sphere
+      const backgroundGeometry = new THREE.SphereGeometry(100, 32, 32);
+      const backgroundTexture = new THREE.TextureLoader().load('');
+      const backgroundMaterial = new THREE.MeshBasicMaterial({ map: backgroundTexture, side: THREE.BackSide });
+      backgroundSphere = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+      scene.add(backgroundSphere);
+      // Add rings for planets like Saturn
+      if (hasRing) {
+        const ringGeometry = new THREE.RingGeometry(size + 0.5, size + 1, 32);
+        const ringMaterial = new THREE.MeshBasicMaterial({
+          color: 0xaaaaaa, side: THREE.DoubleSide
+        });
+        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        ring.rotation.x = Math.PI / 2;
+        planet.add(ring);
+      }
+
+      // Create label
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'label';
+      labelDiv.textContent = name;
+      labelDiv.style.marginTop = '-1em';
+      const label = new THREE.CSS2DObject(labelDiv);
+      label.position.set(0, size + 0.5, 0);
+      planet.add(label);
+
+      scene.add(planet);
+      return planet;
+    };
+
+    // Planets
+    const planets = [
+      { planet: createPlanet(0.5, 0xaaaaaa, 5, false, "Mercury"), distance: 5, speed: 0.0001 },
+      { planet: createPlanet(0.9, 0xffcc66, 8, false, "Venus"), distance: 8, speed: 0.0008 },
+      { planet: createPlanet(1, 0x6699ff, 12, false, "Earth"), distance: 12, speed: 0.0004 },
+      { planet: createPlanet(0.7, 0xff5533, 16, false, "Mars"), distance: 16, speed: 0.0005 },
+      { planet: createPlanet(2.2, 0xffcc99, 21, false, "Jupiter"), distance: 21, speed: 0.00008 },
+      { planet: createPlanet(1.8, 0xffdd99, 28, true, "Saturn"), distance: 28, speed: 0.00005 },
+      { planet: createPlanet(1.4, 0x99ccff, 35, false, "Uranus"), distance: 35, speed: 0.0004 },
+      { planet: createPlanet(1.3, 0x6666ff, 40, false, "Neptune"), distance: 40, speed: 0.0003 }
+    ];
+
+    // Camera position
+    camera.position.z = 50;
+
+    // Adjust camera and renderer on resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Control buttons functionality
+    document.getElementById('leftBtn').addEventListener('click', () => {
+      controls.target.x -= 1; // Move view left
+      controls.update();
+    });
+
+    document.getElementById('rightBtn').addEventListener('click', () => {
+      controls.target.x += 1; // Move view right
+      controls.update();
+    });
+
+    // Zoom slider functionality
+    const zoomSlider = document.getElementById('zoomSlider');
+    zoomSlider.addEventListener('input', () => {
+      const zoomValue = zoomSlider.value;
+      camera.position.z = 50 - (zoomValue - 50); // Adjust camera position based on slider value
+    });
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Rotate the sun
+      sun.rotation.y += 0.002;
+
+      // Move planets in orbit
+      const currentTime = Date.now();
+      planets.forEach(p => {
+        p.planet.position.x = p.distance * Math.cos(currentTime * p.speed);
+        p.planet.position.z = p.distance * Math.sin(currentTime * p.speed);
+      });
+
+      controls.update();
+      renderer.render(scene, camera);
+      labelRenderer.render(scene, camera); // Render labels
+    }
+
+    animate();
+  </script>
+</body>
+</html>
